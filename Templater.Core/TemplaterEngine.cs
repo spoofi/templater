@@ -50,6 +50,9 @@ public class TemplaterEngine : ITemplateEngine
         }
         catch (Exception ex)
         {
+            if (ex is TemplaterException)
+                throw;
+
             throw new TemplaterInvalidOperationException("Failed to parse template", ex);
         }
     }

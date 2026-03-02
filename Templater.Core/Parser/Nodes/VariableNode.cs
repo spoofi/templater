@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Templater.Core.Exceptions;
 using Templater.Core.Render;
 
 namespace Templater.Core.Parser.Nodes;
@@ -45,7 +46,7 @@ public class VariableNode : BaseNode
         foreach (var modificator in Modificators)
             result = context.TryApplyModificator(modificator.Name, modificator.Args, result, out var modifiedResult)
                 ? modifiedResult
-                : throw new InvalidOperationException($"Modificator '{modificator.Name}' not found");
+                : throw new TemplaterInvalidOperationException($"Modificator '{modificator.Name}' not found");
 
         return result?.ToString() ?? string.Empty;
     }

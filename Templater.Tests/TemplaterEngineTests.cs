@@ -1,4 +1,5 @@
 using Templater.Core;
+using Templater.Core.Exceptions;
 using Xunit;
 
 namespace Templater.Tests;
@@ -6,15 +7,35 @@ namespace Templater.Tests;
 public class TemplaterEngineTests
 {
     [Theory]
-    [InlineData("test1")]
-    [InlineData("test2")]
+    [InlineData("base")]
+    [InlineData("simple-var-root")]
     [InlineData("modificator-with-args")]
+    [InlineData("paragraph-with-args")]
     public void CreateHtml_Test(string dataSet)
     {
         var (json, templateHtml, expectedHtml) = GetTestData(dataSet);
         var templateEngine = new TemplaterEngine();
         var result = templateEngine.CreateHtml(templateHtml, json);
         Assert.Equal(expectedHtml, result);
+    }
+
+    [Theory]
+    [InlineData("syntax-error")]
+    public void CreateHtml_SyntaxCheck(string dataSet)
+    {
+        var (json, templateHtml, _) = GetTestData(dataSet);
+        var templateEngine = new TemplaterEngine();
+
+        Assert.Throws<TemplaterInvalidSyntaxException>(() => templateEngine.CreateHtml(templateHtml, json));
+    }
+
+    [Theory]
+    [InlineData("invalid-modificator")]
+    public void CreateHtml_InvalidModificator(string dataSet)
+    {
+        var (json, templateHtml, _) = GetTestData(dataSet);
+        var templateEngine = new TemplaterEngine();
+        Assert.Throws<TemplaterInvalidOperationException>(() => templateEngine.CreateHtml(templateHtml, json));
     }
 
     private const string DataBasePath = "data";
