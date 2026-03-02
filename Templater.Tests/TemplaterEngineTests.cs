@@ -6,11 +6,12 @@ namespace Templater.Tests;
 public class TemplaterEngineTests
 {
     [Theory]
-    [InlineData("1")]
-    [InlineData("2")]
-    public void CreateHtml_Test(string number)
+    [InlineData("test1")]
+    [InlineData("test2")]
+    [InlineData("modificator-with-args")]
+    public void CreateHtml_Test(string dataSet)
     {
-        var (json, templateHtml, expectedHtml) = GetTestData($"test{number}");
+        var (json, templateHtml, expectedHtml) = GetTestData(dataSet);
         var templateEngine = new TemplaterEngine();
         var result = templateEngine.CreateHtml(templateHtml, json);
         Assert.Equal(expectedHtml, result);
@@ -18,12 +19,12 @@ public class TemplaterEngineTests
 
     private const string DataBasePath = "data";
 
-    private static (string data, string template, string expected) GetTestData(string testName)
+    private static (string data, string template, string expected) GetTestData(string dataSet)
     {
         return (
-            File.ReadAllText($"{DataBasePath}/{testName}/data.json"),
-            File.ReadAllText($"{DataBasePath}/{testName}/template.html"),
-            File.ReadAllText($"{DataBasePath}/{testName}/result.html")
+            File.ReadAllText($"{DataBasePath}/{dataSet}/data.json"),
+            File.ReadAllText($"{DataBasePath}/{dataSet}/template.html"),
+            File.ReadAllText($"{DataBasePath}/{dataSet}/result.html")
         );
     }
 }

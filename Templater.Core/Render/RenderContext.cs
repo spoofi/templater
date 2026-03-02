@@ -86,13 +86,13 @@ public class RenderContext : IDisposable
         return rootCurrent;
     }
 
-    public bool TryApplyModificator(string modName, object? input, out object? result)
+    public bool TryApplyModificator(string modName, string[] args, object? input, out object? result)
     {
         ThrowIfDisposed();
 
         if (_modificatorsRegistry.TryGetModificator(modName, out var modificator))
         {
-            result = modificator!.Apply(input);
+            result = modificator!.Apply(input, args);
             return true;
         }
 

@@ -15,12 +15,11 @@ public class VariableNode : BaseNode
     }
 
     private string JsonPath { get; set; } = string.Empty;
-    private List<string> Modificators { get; } = [];
+    private List<ModificatorWithArgs> Modificators { get; } = [];
 
 
     private void ParseExpression(string expression)
     {
-        // TODO 2026-03-02 A.Suvorov: добавить аргументы для модификатора (like | price:EUR )
         var parts = expression.Split('|').Select(p => p.Trim()).ToArray();
 
         if (parts.Length == 0)
@@ -29,8 +28,11 @@ public class VariableNode : BaseNode
         JsonPath = parts[0];
 
         for (var i = 1; i < parts.Length; i++)
-            if (!string.IsNullOrWhiteSpace(parts[i]))
-                Modificators.Add(parts[i]);
+        {
+            var modParts = parts[i].Split(':');
+            if (!string.IsNullOrWhiteSpace(modParts[0]))
+                Modificators.Add(new ModificatorWithArgs(modParts[0], modParts[1..]));
+        }
     }
 
     [SuppressMessage("ReSharper", "ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator")]
@@ -40,11 +42,13 @@ public class VariableNode : BaseNode
         object? result = value;
 
         // Apply modificators one by one
-        foreach (var modName in Modificators)
-            result = context.TryApplyModificator(modName, result, out var modifiedResult)
+        foreach (var modificator in Modificators)
+            result = context.TryApplyModificator(modificator.Name, modificator.Args, result, out var modifiedResult)
                 ? modifiedResult
-                : throw new InvalidOperationException($"Modificator '{modName}' not found");
+                : throw new InvalidOperationException($"Modificator '{modificator.Name}' not found");
 
         return result?.ToString() ?? string.Empty;
     }
+
+    private record ModificatorWithArgs(string Name, string[] Args);
 }
