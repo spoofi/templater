@@ -1,1 +1,5 @@
-<Solution />
+<Solution>
+  <Project Path="Templater.Cli/Templater.Cli.csproj" />
+  <Project Path="Templater.Core/Templater.Core.csproj" />
+  <Project Path="Templater.Tests/Templater.Tests.csproj" />
+</Solution>
