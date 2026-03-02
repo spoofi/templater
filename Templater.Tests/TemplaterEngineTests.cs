@@ -38,6 +38,15 @@ public class TemplaterEngineTests
         Assert.Throws<TemplaterInvalidOperationException>(() => templateEngine.CreateHtml(templateHtml, json));
     }
 
+    [Theory]
+    [InlineData("render-exception")]
+    public void CreateHtml_RenderException(string dataSet)
+    {
+        var (json, templateHtml, _) = GetTestData(dataSet);
+        var templateEngine = new TemplaterEngine();
+        Assert.Throws<TemplaterRenderException>(() => templateEngine.CreateHtml(templateHtml, json));
+    }
+
     private const string DataBasePath = "data";
 
     private static (string data, string template, string expected) GetTestData(string dataSet)

@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Nodes;
+using Templater.Core.Exceptions;
 using Templater.Core.Render;
 
 namespace Templater.Core.Parser.Nodes;
@@ -33,7 +34,7 @@ public class ForLoopNode : BaseNode
         var collection = context.ResolvePath(JsonPath);
 
         if (collection is not JsonArray array)
-            return string.Empty; // TODO 2026-03-02 A.Suvorov: idk what to do
+            throw new TemplaterRenderException($"Resolved json path ${JsonPath} is not json array");
 
         var sb = new StringBuilder();
 
