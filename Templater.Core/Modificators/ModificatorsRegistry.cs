@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Templater.Core.Abstractions;
+using Templater.Core.Modificators.Abstractions;
 
 namespace Templater.Core.Modificators;
 

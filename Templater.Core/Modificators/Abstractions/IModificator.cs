@@ -1,4 +1,4 @@
-namespace Templater.Core.Abstractions;
+namespace Templater.Core.Modificators.Abstractions;
 
 public interface IModificator
 {
