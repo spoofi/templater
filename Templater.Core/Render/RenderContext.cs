@@ -51,39 +51,74 @@ public class RenderContext : IDisposable
         if (string.IsNullOrWhiteSpace(path))
             return null;
 
+        var pathSpan = path.AsSpan();
+
         // search in all scopes. From top to bottom
         foreach (var scope in _scopes)
         {
-            var parts = path.Split('.');
-            if (!scope.TryGetValue(parts[0], out var current))
-                continue;
-
-            for (var i = 1; i < parts.Length; i++)
-                if (current is JsonObject obj && obj.TryGetPropertyValue(parts[i], out var next))
-                {
-                    current = next;
-                }
-                else
-                {
-                    current = null;
-                    break;
-                }
-
+            var current = ResolveInScope(scope, pathSpan);
             if (current != null)
                 return current;
         }
 
-        // Search in root data: "product.name" -> data["product"]["name"]
-        var rootParts = path.Split('.');
-        var rootCurrent = _rootData;
+        // Search in root data
+        return ResolveInRoot(_rootData, pathSpan);
+    }
 
-        foreach (var part in rootParts)
-            if (rootCurrent is JsonObject obj && obj.TryGetPropertyValue(part, out var next))
-                rootCurrent = next;
+    private static JsonNode? ResolveInScope(Dictionary<string, JsonNode?> scope, ReadOnlySpan<char> path)
+    {
+        var dotIndex = path.IndexOf('.');
+        if (dotIndex == -1)
+            return scope.GetValueOrDefault(path.ToString());
+
+        if (!scope.TryGetValue(path[..dotIndex].ToString(), out var current) || current == null)
+            return null;
+
+        return ResolveInJsonNode(current, path[(dotIndex + 1)..]);
+    }
+
+    private static JsonNode? ResolveInRoot(JsonNode? root, ReadOnlySpan<char> path)
+    {
+        if (root == null)
+            return null;
+
+        var dotIndex = path.IndexOf('.');
+        if (dotIndex == -1)
+            return root is JsonObject obj && obj.TryGetPropertyValue(path.ToString(), out var value) ? value : null;
+
+        if (root is not JsonObject rootObj ||
+            !rootObj.TryGetPropertyValue(path[..dotIndex].ToString(), out var current) || current == null)
+            return null;
+
+        return ResolveInJsonNode(current, path[(dotIndex + 1)..]);
+    }
+
+    private static JsonNode? ResolveInJsonNode(JsonNode node, ReadOnlySpan<char> path)
+    {
+        var current = node;
+        var remainingPath = path;
+
+        while (true)
+        {
+            var nextDot = remainingPath.IndexOf('.');
+            if (nextDot == -1)
+                return current is JsonObject obj && obj.TryGetPropertyValue(remainingPath.ToString(), out var value)
+                    ? value
+                    : null;
+
+            if (current is JsonObject currentObj
+                && currentObj.TryGetPropertyValue(remainingPath[..nextDot].ToString(), out var next))
+            {
+                current = next;
+                remainingPath = remainingPath[(nextDot + 1)..];
+                if (current == null)
+                    return null;
+            }
             else
+            {
                 return null;
-
-        return rootCurrent;
+            }
+        }
     }
 
     public bool TryApplyModificator(string modName, string[] args, object? input, out object? result)

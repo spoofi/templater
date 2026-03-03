@@ -19,20 +19,38 @@ public class TemplateRenderer
 
     public string Render()
     {
-        var result = _root.Render(_context);
-        return PostProcess(result);
+        var sb = new StringBuilder();
+        _root.Render(_context, sb);
+        return PostProcess(sb.ToString());
     }
 
     private static string PostProcess(string html)
     {
-        var lines = html.Split('\n');
-        var sb = new StringBuilder();
+        if (string.IsNullOrEmpty(html))
+            return string.Empty;
 
-        foreach (var line in lines)
+        var sb = new StringBuilder(html.Length);
+        var span = html.AsSpan();
+
+        var start = 0;
+        while (start < span.Length)
         {
-            if (string.IsNullOrWhiteSpace(line))
+            var end = span[start..].IndexOf('\n');
+            ReadOnlySpan<char> line;
+            if (end == -1)
+            {
+                line = span[start..];
+                start = span.Length;
+            }
+            else
+            {
+                line = span.Slice(start, end);
+                start += end + 1;
+            }
+
+            if (line.IsWhiteSpace())
                 continue;
-            
+
             sb.Append(line.TrimEnd());
             sb.Append('\n');
         }

@@ -29,14 +29,12 @@ public class ForLoopNode : BaseNode
         Body.Add(node);
     }
 
-    public override string Render(RenderContext context)
+    public override void Render(RenderContext context, StringBuilder sb)
     {
         var collection = context.ResolvePath(JsonPath);
 
         if (collection is not JsonArray array)
             throw new TemplaterRenderException($"Resolved json path ${JsonPath} is not json array");
-
-        var sb = new StringBuilder();
 
         foreach (var item in array)
             using (context.AddScope())
@@ -44,9 +42,7 @@ public class ForLoopNode : BaseNode
                 context.SetVariable(ItemName, item);
 
                 foreach (var node in Body)
-                    sb.Append(node.Render(context));
+                    node.Render(context, sb);
             }
-
-        return sb.ToString();
     }
 }

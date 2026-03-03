@@ -10,11 +10,9 @@ public class RootNode : BaseNode
 {
     public List<BaseNode> Children { get; } = [];
 
-    public override string Render(RenderContext context)
+    public override void Render(RenderContext context, StringBuilder sb)
     {
-        var sb = new StringBuilder();
         foreach (var child in Children)
-            sb.Append(child.Render(context));
-        return sb.ToString();
+            child.Render(context, sb);
     }
 }

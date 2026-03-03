@@ -52,9 +52,9 @@ public class TemplaterEngineTests
     private static (string data, string template, string expected) GetTestData(string dataSet)
     {
         return (
-            File.ReadAllText($"{DataBasePath}/{dataSet}/data.json"),
-            File.ReadAllText($"{DataBasePath}/{dataSet}/template.html"),
-            File.ReadAllText($"{DataBasePath}/{dataSet}/result.html")
+            File.ReadAllText(Path.Combine(DataBasePath, dataSet, "data.json")),
+            File.ReadAllText(Path.Combine(DataBasePath, dataSet, "template.html")),
+            File.ReadAllText(Path.Combine(DataBasePath, dataSet, "result.html"))
         );
     }
 }

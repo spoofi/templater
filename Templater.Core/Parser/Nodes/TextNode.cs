@@ -1,3 +1,4 @@
+using System.Text;
 using Templater.Core.Render;
 
 namespace Templater.Core.Parser.Nodes;
@@ -7,8 +8,8 @@ namespace Templater.Core.Parser.Nodes;
 /// </summary>
 public class TextNode(string content) : BaseNode
 {
-    public override string Render(RenderContext context)
+    public override void Render(RenderContext context, StringBuilder sb)
     {
-        return content;
+        sb.Append(content);
     }
 }

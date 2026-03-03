@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace Templater.Core.Parser;
 
@@ -36,14 +35,7 @@ public class Tokenizer
     [SuppressMessage("ReSharper", "LoopCanBeConvertedToQuery")]
     private bool IsMatch(string pattern)
     {
-        if (_position + pattern.Length > _template.Length)
-            return false;
-
-        for (var i = 0; i < pattern.Length; i++)
-            if (_template[_position + i] != pattern[i])
-                return false;
-
-        return true;
+        return _template.AsSpan(_position).StartsWith(pattern);
     }
 
     private void Skip(int count)
@@ -69,18 +61,17 @@ public class Tokenizer
     {
         var startLine = _line;
         var startColumn = _column;
-        var sb = new StringBuilder();
+        var startPosition = _position;
 
         while (_position < _template.Length)
         {
             if (IsMatch(VariableStartTag) || IsMatch(BlockStartTag))
                 break;
 
-            sb.Append(_template[_position]);
             Skip(1);
         }
 
-        return new Token(TokenType.Text, sb.ToString(), startLine, startColumn);
+        return new Token(TokenType.Text, _template[startPosition.._position], startLine, startColumn);
     }
 
     private Token ReadVariable()
@@ -90,16 +81,13 @@ public class Tokenizer
 
         Skip(VariableStartTag.Length);
 
-        var sb = new StringBuilder();
-        while (_position < _template.Length && !IsMatch(VariableEndTag))
-        {
-            sb.Append(_template[_position]);
-            Skip(1);
-        }
+        var startPosition = _position;
+        while (_position < _template.Length && !IsMatch(VariableEndTag)) Skip(1);
 
+        var content = _template.AsSpan(startPosition, _position - startPosition).Trim().ToString();
         Skip(VariableEndTag.Length);
 
-        return new Token(TokenType.Variable, sb.ToString().Trim(), startLine, startColumn);
+        return new Token(TokenType.Variable, content, startLine, startColumn);
     }
 
     private Token ReadBlock()
@@ -109,20 +97,16 @@ public class Tokenizer
 
         Skip(BlockStartTag.Length);
 
-        var sb = new StringBuilder();
-        while (_position < _template.Length && !IsMatch(BlockEndTag))
-        {
-            sb.Append(_template[_position]);
-            Skip(1);
-        }
+        var startPosition = _position;
+        while (_position < _template.Length && !IsMatch(BlockEndTag)) Skip(1);
 
+        var content = _template.AsSpan(startPosition, _position - startPosition).Trim();
         Skip(BlockEndTag.Length);
 
-        var content = sb.ToString().Trim();
         var type = content.StartsWith(BlockEndTextStartsWith)
             ? TokenType.BlockEnd
             : TokenType.BlockStart;
 
-        return new Token(type, content, startLine, startColumn);
+        return new Token(type, content.ToString(), startLine, startColumn);
     }
 }
